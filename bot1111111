@@ -10,18 +10,12 @@ from pathlib import Path
 from collections import defaultdict
 from datetime import datetime, timedelta
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypes
-
-# Configuration
-TELEGRAM_TOKEN = "8547834296:AAGf3QpJFNYdkSQrPNL9ufj-1HPBJagpq5o"
-THEOS_PATH = "/root/theos"
-WORK_DIR = "/tmp/theos_builds"
-MAX_CONCURRENT_BUILDS = 3
-BUILD_TIMEOUT = 900  # 15 minutes
-RATE_LIMIT_MINUTES = 1
-MAX_FILE_SIZE_MB = 100
-LOG_GROUP_ID = -5129947601  # Private group for logging all builds
-
+from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQueryHandler, filters, ContextTypesx
+# تعديل البوت الثاني Configuration
+nano bot66666666.pyTELEGRAM_TOKEN = "8547834296:AAGf3QpJFNYdkSQrPNL9ufj-1HPBJagpq5o" THEOS_PATH = "/root/theos" 
+WORK_DIR = "/tmp/theos_builds" MAX_CONCURRENT_BUILDS = 3 BUILD_TIMEOUT = 900 # 15 minutes RATE_LIMIT_MINUTES = 1 
+MAX_FILE_SIZE_MB = 100 LOG_GROUP_ID = -5129947601 # Private group for logging all builds
+# (قم بتغيير THEOS_PATH = "/root/theos" ثم احفظ واخرج: Ctrl+O ثم Enter ثم Ctrl+X)x
 # Setup logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -236,7 +230,7 @@ async def handle_document(update: Update, context: ContextTypes.DEFAULT_TYPE):
                         f"Name: {client_name}\n"
                         f"Username: {client_username}\n"
                         f"User ID: `{user_id}`\n"
-                        f"Project: {document.file_name}\n"
+                        f"xProject: {document.file_name}\n"
                         f"Size: {document.file_size / 1024:.1f} KB\n"
                         f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
                         f"Status: Building..."
