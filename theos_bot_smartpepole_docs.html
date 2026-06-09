@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Theos Compiler Bot — smartpepole</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #21262d;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --accent2: #3fb950;
+    --accent3: #f78166;
+    --accent4: #e3b341;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --code-bg: #1a1f2b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #0d1117 0%, #161b22 50%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 48px 24px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(ellipse at center, rgba(88,166,255,0.05) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .header-badge {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+  .header p {
+    color: var(--text2);
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .copyright {
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 12px;
+  }
+  .copyright strong { color: var(--accent); }
+
+  /* Lang switcher */
+  .lang-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .lang-btn {
+    padding: 6px 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+  }
+  .lang-btn.active, .lang-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(88,166,255,0.08);
+  }
+
+  /* Layout */
+  .container { max-width: 900px; margin: 0 auto; padding: 32px 20px; }
+
+  /* Content blocks */
+  .content-ar, .content-en { display: none; }
+  .content-ar.visible, .content-en.visible { display: block; }
+
+  /* Section */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .icon {
+    font-size: 22px;
+  }
+
+  /* Description text */
+  p { color: var(--text); margin-bottom: 10px; }
+  p:last-child { margin-bottom: 0; }
+
+  /* Feature grid */
+  .feat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+  }
+  .feat-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .feat-icon { font-size: 20px; flex-shrink: 0; }
+  .feat-text { font-size: 13.5px; color: var(--text); }
+  .feat-label { font-weight: 600; display: block; margin-bottom: 2px; }
+  .feat-desc { color: var(--text2); font-size: 12.5px; }
+
+  /* VPS specs table */
+  .specs-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 8px;
+    font-size: 14px;
+  }
+  .specs-table th {
+    background: var(--surface2);
+    padding: 10px 14px;
+    text-align: right;
+    font-weight: 600;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+  }
+  .specs-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+  .specs-table tr:last-child td { border-bottom: none; }
+  .specs-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-min { background: rgba(243,176,102,0.15); color: var(--accent4); }
+  .badge-rec { background: rgba(63,185,80,0.15); color: var(--accent2); }
+
+  /* Steps */
+  .steps { list-style: none; margin-top: 8px; }
+  .step-item {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 16px;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(88,166,255,0.15);
+    border: 1px solid rgba(88,166,255,0.3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-weight: 600; margin-bottom: 4px; }
+  .step-desc { color: var(--text2); font-size: 13.5px; }
+
+  /* Code block */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 10px 0;
+    font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+    font-size: 13px;
+    color: #cdd9e5;
+    overflow-x: auto;
+    direction: ltr;
+    text-align: left;
+    line-height: 1.6;
+    white-space: pre;
+  }
+  .code-block .comment { color: #8b949e; }
+  .code-block .cmd { color: var(--accent2); }
+  .code-block .var { color: var(--accent4); }
+
+  /* Flow chart */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+  }
+  .flow-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+  .flow-arrow { color: var(--text2); text-align: center; font-size: 18px; padding: 0 4px; }
+  .flow-icon { font-size: 18px; }
+
+  /* Info box */
+  .info-box {
+    background: rgba(88,166,255,0.07);
+    border: 1px solid rgba(88,166,255,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: #a5c8f0;
+    margin-top: 10px;
+  }
+  .warn-box {
+    background: rgba(227,179,65,0.07);
+    border: 1px solid rgba(227,179,65,0.25);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13.5px;
+    color: #e3b341;
+    margin-top: 10px;
+  }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    padding: 32px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 13px;
+  }
+  .footer strong { color: var(--accent); }
+
+  /* RTL override for EN content */
+  .content-en { direction: ltr; text-align: left; }
+  .content-en .specs-table th { text-align: left; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-badge">smartpepole © 2024</div>
+  <h1>🔧 Theos Compiler Bot</h1>
+  <p>بوت تيليقرام لكمبايل مشاريع iOS Tweaks</p>
+  <p>Telegram Bot for Compiling iOS Tweak Projects</p>
+  <p class="copyright">جميع الحقوق محفوظة لـ <strong>smartpepole</strong> — All Rights Reserved</p>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('ar')">🇸🇦 عربي</button>
+    <button class="lang-btn" onclick="setLang('en')">🇬🇧 English</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ===== ARABIC CONTENT ===== -->
+  <div class="content-ar visible">
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📌</span> ما هو هذا المشروع؟</div>
+      <p>
+        <strong>Theos Compiler Bot</strong> هو بوت تيليقرام احترافي يسمح للمطورين برفع مشاريع iOS Tweak المبنية على Theos، وكمبايلها تلقائياً على السيرفر، وإرجاع الملف الجاهز (deb / dylib / framework) مباشرة في المحادثة.
+      </p>
+      <p style="margin-top:10px;">
+        لا يحتاج المستخدم أي إعداد على جهازه — فقط يرفع الملف المضغوط ويستلم النتيجة خلال دقائق.
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">⚡</span> المميزات</div>
+      <div class="feat-grid">
+        <div class="feat-item">
+          <span class="feat-icon">📦</span>
+          <div class="feat-text">
+            <span class="feat-label">صيغ مضغوطة متعددة</span>
+            <span class="feat-desc">zip, rar, 7z, tar.gz, tar.bz2</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">⚙️</span>
+          <div class="feat-text">
+            <span class="feat-label">كمبايل متوازي</span>
+            <span class="feat-desc">3 مشاريع في نفس الوقت</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔄</span>
+          <div class="feat-text">
+            <span class="feat-label">تصحيح تلقائي للمسارات</span>
+            <span class="feat-desc">يصلح THEOS path في Makefile</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">❌</span>
+          <div class="feat-text">
+            <span class="feat-label">إلغاء البيلد</span>
+            <span class="feat-desc">يمكن إلغاء الكمبايل في أي وقت</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">📋</span>
+          <div class="feat-text">
+            <span class="feat-label">لوق كامل عند الفشل</span>
+            <span class="feat-desc">يرسل ملف build_error.log</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🛡️</span>
+          <div class="feat-text">
+            <span class="feat-label">Rate Limiting</span>
+            <span class="feat-desc">دقيقة انتظار بين كل بيلد</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔒</span>
+          <div class="feat-text">
+            <span class="feat-label">سجل خاص</span>
+            <span class="feat-desc">كل مشروع يُسجّل في مجموعة خاصة</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔁</span>
+          <div class="feat-text">
+            <span class="feat-label">إعادة تشغيل تلقائية</span>
+            <span class="feat-desc">يعمل عبر systemd دائماً</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🖥️</span> متطلبات VPS</div>
+      <p style="margin-bottom:14px;">البوت يشتغل على Linux VPS. هذي هي المتطلبات:</p>
+      <table class="specs-table">
+        <tr>
+          <th>المورد</th>
+          <th>الحد الأدنى <span class="badge badge-min">MIN</span></th>
+          <th>الموصى به <span class="badge badge-rec">REC</span></th>
+          <th>السبب</th>
+        </tr>
+        <tr>
+          <td>🖥️ <strong>CPU</strong></td>
+          <td>2 Core</td>
+          <td>4 Core</td>
+          <td>الكمبايل يستهلك CPU كثير، خصوصاً عند 3 builds متزامنة</td>
+        </tr>
+        <tr>
+          <td>💾 <strong>RAM</strong></td>
+          <td>2 GB</td>
+          <td>4 GB</td>
+          <td>clang يحتاج ذاكرة كافية، وكل build يأخذ ~500MB</td>
+        </tr>
+        <tr>
+          <td>💿 <strong>Storage</strong></td>
+          <td>20 GB SSD</td>
+          <td>40 GB SSD</td>
+          <td>Theos + SDKs + toolchains = ~10GB، مع مساحة للـ builds</td>
+        </tr>
+        <tr>
+          <td>🌐 <strong>Network</strong></td>
+          <td>100 Mbps</td>
+          <td>500 Mbps+</td>
+          <td>رفع/تنزيل ملفات المستخدمين بسرعة</td>
+        </tr>
+        <tr>
+          <td>🐧 <strong>OS</strong></td>
+          <td colspan="2">Ubuntu 20.04 LTS أو Ubuntu 22.04 LTS</td>
+          <td>الأفضل توافقاً مع Theos</td>
+        </tr>
+        <tr>
+          <td>🏠 <strong>Location</strong></td>
+          <td colspan="2">أي دولة (US / EU / Asia)</td>
+          <td>يفضل سيرفر قريب من معظم المستخدمين</td>
+        </tr>
+      </table>
+      <div class="warn-box">⚠️ لا تستخدم VPS بـ 1GB RAM — سيفشل الكمبايل بسبب نقص الذاكرة.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🚀</span> خطوات التثبيت على VPS</div>
+      <ul class="steps">
+        <li class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">تجهيز السيرفر</div>
+            <div class="step-desc">Ubuntu 22.04 على VPS، تسجيل دخول عبر SSH</div>
+            <div class="code-block"><span class="comment"># تحديث الحزم</span>
+<span class="cmd">sudo apt-get update && sudo apt-get upgrade -y</span>
+<span class="cmd">sudo apt-get install -y git curl make clang python3 python3-pip unrar p7zip-full</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">تثبيت Theos من theos.dev</div>
+            <div class="step-desc">التثبيت الرسمي يجلب Theos + toolchains + SDKs</div>
+            <div class="code-block"><span class="var">export THEOS</span>=/home/smartpepole/theos
+<span class="cmd">bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">إضافة PATH</div>
+            <div class="step-desc">حتى يتعرف السيرفر على Theos في كل جلسة</div>
+            <div class="code-block"><span class="cmd">echo 'export THEOS=/home/smartpepole/theos' >> ~/.bashrc</span>
+<span class="cmd">echo 'export PATH=$THEOS/bin:$PATH' >> ~/.bashrc</span>
+<span class="cmd">source ~/.bashrc</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">إعداد التوكن في bot.py</div>
+            <div class="step-desc">احصل على توكن من @BotFather وعدّله في الملف</div>
+            <div class="code-block"><span class="var">TELEGRAM_TOKEN</span> = "YOUR_TOKEN_HERE"
+<span class="var">LOG_GROUP_ID</span> = -100XXXXXXXXXX  <span class="comment"># ID مجموعتك الخاصة</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">تشغيل سكريبت التثبيت</div>
+            <div class="step-desc">يثبت المكتبات ويشغل البوت كـ service</div>
+            <div class="code-block"><span class="cmd">chmod +x install.sh && sudo ./install.sh</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">التحقق من التشغيل</div>
+            <div class="step-desc">تأكد أن البوت يعمل بشكل صحيح</div>
+            <div class="code-block"><span class="cmd">sudo systemctl status theos-bot</span>
+<span class="cmd">sudo journalctl -u theos-bot -f</span></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🔄</span> كيف يعمل البوت؟</div>
+      <div class="flow">
+        <div class="flow-item"><span class="flow-icon">📤</span> المستخدم يرفع ملف مضغوط (zip/rar/7z) للمشروع</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">📥</span> البوت يحمّل الملف على السيرفر</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">📦</span> يفك الضغط ويبحث عن Makefile</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">🔧</span> يصلح مسار THEOS في Makefile تلقائياً</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">⚙️</span> يشغّل <code>make package</code> ويراقب المخرجات</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">✅</span> يرسل .deb / .dylib / .framework للمستخدم</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📁</span> هيكل المشروع</div>
+      <div class="code-block">theos-bot/
+├── bot.py              <span class="comment"># البوت الرئيسي (مع retry logic كاملة)</span>
+├── bot66666666.py      <span class="comment"># نسخة بديلة أبسط</span>
+├── requirements.txt    <span class="comment"># python-telegram-bot, patool, pyunpack</span>
+├── install.sh          <span class="comment"># سكريبت تثبيت وتشغيل تلقائي</span>
+├── theos-bot.service   <span class="comment"># ملف systemd للتشغيل المستمر</span>
+└── README.md           <span class="comment"># الشرح الكامل</span></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🛠️</span> أوامر الإدارة</div>
+      <div class="code-block"><span class="comment"># إعادة تشغيل</span>
+<span class="cmd">sudo systemctl restart theos-bot</span>
+
+<span class="comment"># إيقاف</span>
+<span class="cmd">sudo systemctl stop theos-bot</span>
+
+<span class="comment"># مشاهدة اللوقات مباشرة</span>
+<span class="cmd">sudo journalctl -u theos-bot -f</span>
+
+<span class="comment"># تفعيل التشغيل التلقائي عند إعادة التشغيل</span>
+<span class="cmd">sudo systemctl enable theos-bot</span></div>
+    </div>
+
+  </div><!-- end .content-ar -->
+
+
+  <!-- ===== ENGLISH CONTENT ===== -->
+  <div class="content-en">
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📌</span> What is this project?</div>
+      <p>
+        <strong>Theos Compiler Bot</strong> is a professional Telegram bot that lets iOS tweak developers upload their Theos projects as compressed archives, automatically compile them on a remote server, and receive the output file (deb / dylib / framework) directly in chat.
+      </p>
+      <p style="margin-top:10px;">
+        No local setup required for end users — they simply upload a zip and receive the compiled result within minutes.
+      </p>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">⚡</span> Features</div>
+      <div class="feat-grid">
+        <div class="feat-item">
+          <span class="feat-icon">📦</span>
+          <div class="feat-text">
+            <span class="feat-label">Multiple archive formats</span>
+            <span class="feat-desc">zip, rar, 7z, tar.gz, tar.bz2</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">⚙️</span>
+          <div class="feat-text">
+            <span class="feat-label">Parallel builds</span>
+            <span class="feat-desc">Up to 3 concurrent compilations</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔄</span>
+          <div class="feat-text">
+            <span class="feat-label">Auto-path patching</span>
+            <span class="feat-desc">Fixes THEOS path in Makefile</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">❌</span>
+          <div class="feat-text">
+            <span class="feat-label">Build cancellation</span>
+            <span class="feat-desc">Cancel compilation at any time</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">📋</span>
+          <div class="feat-text">
+            <span class="feat-label">Full error logs</span>
+            <span class="feat-desc">Sends build_error.log on failure</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🛡️</span>
+          <div class="feat-text">
+            <span class="feat-label">Rate limiting</span>
+            <span class="feat-desc">1 minute cooldown per user</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔒</span>
+          <div class="feat-text">
+            <span class="feat-label">Private logging</span>
+            <span class="feat-desc">All projects logged to private group</span>
+          </div>
+        </div>
+        <div class="feat-item">
+          <span class="feat-icon">🔁</span>
+          <div class="feat-text">
+            <span class="feat-label">Auto-restart</span>
+            <span class="feat-desc">Runs via systemd, always on</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🖥️</span> VPS Requirements</div>
+      <p style="margin-bottom:14px;">The bot requires a Linux VPS. Here are the specs:</p>
+      <table class="specs-table">
+        <tr>
+          <th>Resource</th>
+          <th>Minimum <span class="badge badge-min">MIN</span></th>
+          <th>Recommended <span class="badge badge-rec">REC</span></th>
+          <th>Reason</th>
+        </tr>
+        <tr>
+          <td>🖥️ <strong>CPU</strong></td>
+          <td>2 Cores</td>
+          <td>4 Cores</td>
+          <td>Compilation is CPU-heavy, especially with 3 simultaneous builds</td>
+        </tr>
+        <tr>
+          <td>💾 <strong>RAM</strong></td>
+          <td>2 GB</td>
+          <td>4 GB</td>
+          <td>clang needs sufficient memory; each build takes ~500MB</td>
+        </tr>
+        <tr>
+          <td>💿 <strong>Storage</strong></td>
+          <td>20 GB SSD</td>
+          <td>40 GB SSD</td>
+          <td>Theos + SDKs + toolchains ≈ 10GB, plus space for builds</td>
+        </tr>
+        <tr>
+          <td>🌐 <strong>Network</strong></td>
+          <td>100 Mbps</td>
+          <td>500 Mbps+</td>
+          <td>Fast upload/download of user project files</td>
+        </tr>
+        <tr>
+          <td>🐧 <strong>OS</strong></td>
+          <td colspan="2">Ubuntu 20.04 LTS or Ubuntu 22.04 LTS</td>
+          <td>Best compatibility with Theos</td>
+        </tr>
+        <tr>
+          <td>🏠 <strong>Location</strong></td>
+          <td colspan="2">Any (US / EU / Asia)</td>
+          <td>Choose a server close to your main user base</td>
+        </tr>
+      </table>
+      <div class="warn-box">⚠️ Do not use a 1GB RAM VPS — compilation will fail due to insufficient memory.</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🚀</span> Installation Steps on VPS</div>
+      <ul class="steps">
+        <li class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <div class="step-title">Prepare the server</div>
+            <div class="step-desc">Ubuntu 22.04 on VPS, SSH in and update packages</div>
+            <div class="code-block"><span class="comment"># Update packages</span>
+<span class="cmd">sudo apt-get update && sudo apt-get upgrade -y</span>
+<span class="cmd">sudo apt-get install -y git curl make clang python3 python3-pip unrar p7zip-full</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <div class="step-title">Install Theos from theos.dev</div>
+            <div class="step-desc">Official installer fetches Theos + toolchains + SDKs automatically</div>
+            <div class="code-block"><span class="var">export THEOS</span>=/home/smartpepole/theos
+<span class="cmd">bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <div class="step-title">Add to PATH</div>
+            <div class="step-desc">So the server recognizes Theos in every session</div>
+            <div class="code-block"><span class="cmd">echo 'export THEOS=/home/smartpepole/theos' >> ~/.bashrc</span>
+<span class="cmd">echo 'export PATH=$THEOS/bin:$PATH' >> ~/.bashrc</span>
+<span class="cmd">source ~/.bashrc</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <div class="step-title">Configure token in bot.py</div>
+            <div class="step-desc">Get a token from @BotFather and edit the file</div>
+            <div class="code-block"><span class="var">TELEGRAM_TOKEN</span> = "YOUR_TOKEN_HERE"
+<span class="var">LOG_GROUP_ID</span> = -100XXXXXXXXXX  <span class="comment"># Your private group ID</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">5</div>
+          <div class="step-content">
+            <div class="step-title">Run the install script</div>
+            <div class="step-desc">Installs Python deps and registers bot as a systemd service</div>
+            <div class="code-block"><span class="cmd">chmod +x install.sh && sudo ./install.sh</span></div>
+          </div>
+        </li>
+        <li class="step-item">
+          <div class="step-num">6</div>
+          <div class="step-content">
+            <div class="step-title">Verify it's running</div>
+            <div class="step-desc">Check the service status and live logs</div>
+            <div class="code-block"><span class="cmd">sudo systemctl status theos-bot</span>
+<span class="cmd">sudo journalctl -u theos-bot -f</span></div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🔄</span> How does the bot work?</div>
+      <div class="flow">
+        <div class="flow-item"><span class="flow-icon">📤</span> User uploads a compressed project archive (zip/rar/7z)</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">📥</span> Bot downloads the file to the VPS</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">📦</span> Extracts archive and locates the Makefile</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">🔧</span> Auto-patches THEOS path in Makefile</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">⚙️</span> Runs <code>make package</code> and monitors output</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-item"><span class="flow-icon">✅</span> Sends .deb / .dylib / .framework back to the user</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">📁</span> Project Structure</div>
+      <div class="code-block">theos-bot/
+├── bot.py              <span class="comment"># Main bot (full retry logic)</span>
+├── bot66666666.py      <span class="comment"># Simpler alternate version</span>
+├── requirements.txt    <span class="comment"># python-telegram-bot, patool, pyunpack</span>
+├── install.sh          <span class="comment"># Auto install & start script</span>
+├── theos-bot.service   <span class="comment"># systemd unit for persistent service</span>
+└── README.md           <span class="comment"># Full documentation</span></div>
+    </div>
+
+    <div class="section">
+      <div class="section-title"><span class="icon">🛠️</span> Management Commands</div>
+      <div class="code-block"><span class="comment"># Restart</span>
+<span class="cmd">sudo systemctl restart theos-bot</span>
+
+<span class="comment"># Stop</span>
+<span class="cmd">sudo systemctl stop theos-bot</span>
+
+<span class="comment"># Live logs</span>
+<span class="cmd">sudo journalctl -u theos-bot -f</span>
+
+<span class="comment"># Enable auto-start on reboot</span>
+<span class="cmd">sudo systemctl enable theos-bot</span></div>
+    </div>
+
+  </div><!-- end .content-en -->
+
+</div><!-- end .container -->
+
+<div class="footer">
+  <p>© 2024 <strong>smartpepole</strong> — All Rights Reserved | جميع الحقوق محفوظة</p>
+  <p style="margin-top:6px;">Telegram: <strong>@smartpepole</strong></p>
+</div>
+
+<script>
+function setLang(lang) {
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.content-ar, .content-en').forEach(c => c.classList.remove('visible'));
+
+  if (lang === 'ar') {
+    document.querySelector('.content-ar').classList.add('visible');
+    document.querySelectorAll('.lang-btn')[0].classList.add('active');
+    document.documentElement.setAttribute('dir', 'rtl');
+    document.documentElement.setAttribute('lang', 'ar');
+  } else {
+    document.querySelector('.content-en').classList.add('visible');
+    document.querySelectorAll('.lang-btn')[1].classList.add('active');
+    document.documentElement.setAttribute('dir', 'ltr');
+    document.documentElement.setAttribute('lang', 'en');
+  }
+}
+</script>
+</body>
+</html>
