@@ -14,7 +14,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, CallbackQu
 
 # Configuration
 TELEGRAM_TOKEN = "8547834296:AAGf3QpJFNYdkSQrPNL9ufj-1HPBJagpq5o"
-THEOS_PATH = "/home/smartpepole/theos"
+THEOS_PATH = "/root/theos"
 WORK_DIR = "/tmp/theos_builds"
 MAX_CONCURRENT_BUILDS = 3
 BUILD_TIMEOUT = 900  # 15 minutes
